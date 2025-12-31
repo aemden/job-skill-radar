@@ -36,21 +36,4 @@ Source: Kaggle dataset of data-related job postings scraped from Indeed (snapsho
 Expected raw columns (from this dataset):
 - `Title`, `Company`, `Location`, `Rating`, `Date`, `Salary`, `Description`, `Links`, `Descriptions`
 
----
 
-## Project Structure
-
-job-skill-radar/
-src/
-ingest/
-load_raw.py # loads CSV into DuckDB as raw_job_postings
-clean/
-normalize.py # builds stg_job_postings with stable schema + job_id
-nlp/
-skills.yml # skills taxonomy
-extract_skills.py # builds job_skills from title + full descriptions
-data/
-raw/ # raw dataset (gitignored)
-sample/ # optional small sample committed to repo
-warehouse/
-analytics.duckdb # local DuckDB database (gitignored)
