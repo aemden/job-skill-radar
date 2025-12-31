@@ -1,0 +1,7 @@
+pandas
+duckdb
+pyyaml
+streamlit
+matplotlib
+pytest
+ruff
