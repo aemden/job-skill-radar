@@ -1,0 +1,61 @@
+languages:
+  - python
+  - sql
+  - r
+  - java
+  - scala
+  - javascript
+  - typescript
+
+analytics_tools:
+  - excel
+  - tableau
+  - power bi
+  - looker
+  - google analytics
+
+data_engineering:
+  - dbt
+  - airflow
+  - prefect
+  - kafka
+  - spark
+  - databricks
+  - hadoop
+  - snowflake
+  - bigquery
+  - redshift
+  - glue
+
+cloud:
+  - aws
+  - gcp
+  - azure
+
+databases:
+  - postgres
+  - postgresql
+  - mysql
+  - mongodb
+
+ml_tools:
+  - scikit-learn
+  - sklearn
+  - pytorch
+  - tensorflow
+  - xgboost
+  - lightgbm
+
+orchestration_ci:
+  - github actions
+  - jenkins
+  - gitlab
+
+visualization:
+  - matplotlib
+  - seaborn
+
+other:
+  - linux
+  - docker
+  - kubernetes
