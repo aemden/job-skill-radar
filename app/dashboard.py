@@ -13,6 +13,8 @@ def load_jobs():
     con = duckdb.connect(DB_PATH)
     jobs = con.execute("SELECT job_id, title, company, location, posted_date, role_family FROM stg_job_postings").df()
     con.close()
+    # Ensure posted_date is a Python date (not datetime64) for comparisons with Streamlit date_input
+    jobs["posted_date"] = pd.to_datetime(jobs["posted_date"], errors="coerce").dt.date
     return jobs
 
 @st.cache_data
