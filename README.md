@@ -34,26 +34,28 @@ Built to demonstrate **Data Engineering + Analytics**: ingestion → staging mod
 
 ## Project Structure
 
+```text
 job-skill-radar/
-├─ app/ # optional dashboard
-│ └─ dashboard.py
+├─ app/                      # optional dashboard
+│  └─ dashboard.py
 ├─ src/
-│ ├─ ingest/
-│ │ └─ load_raw.py
-│ ├─ clean/
-│ │ └─ normalize.py
-│ └─ nlp/
-│ ├─ extract_skills.py
-│ └─ skills.yml
+│  ├─ ingest/
+│  │  └─ load_raw.py
+│  ├─ clean/
+│  │  └─ normalize.py
+│  └─ nlp/
+│     ├─ extract_skills.py
+│     └─ skills.yml
 ├─ data/
-│ ├─ raw/ # gitignored (put Kaggle CSV here)
-│ └─ sample/ # optional: commit a small sample for reproducibility
+│  ├─ raw/                   # gitignored (put Kaggle CSV here)
+│  └─ sample/                # optional: commit a small sample for reproducibility
 ├─ warehouse/
-│ └─ analytics.duckdb # gitignored (created locally)
-├─ assets/ # screenshots/diagrams (optional)
+│  └─ analytics.duckdb        # gitignored (created locally)
+├─ assets/                   # screenshots/diagrams (optional)
 ├─ requirements.txt
 ├─ .gitignore
 └─ README.md
+
 
 
 ---
