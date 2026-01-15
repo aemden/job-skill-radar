@@ -83,3 +83,66 @@ py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+```
+
+
+## ML Add-on: Role Family Classification (Baseline NLP Model)
+
+This repo includes a lightweight ML component that predicts a job’s **role family** from the **job title + full description**, then writes predictions back into DuckDB to power downstream analytics.
+
+### What it does
+- Builds a supervised text classifier using **TF-IDF + Logistic Regression**
+- Evaluates performance with a **classification report** + **confusion matrix**
+- Produces an **error set** for manual review (false positives/negatives)
+- Runs inference on all staged postings and writes results to DuckDB table: `pred_role_family`
+
+### Where to look (project tour)
+- **Training + evaluation:** `src/ml/train_role_family.py`
+- **Inference + DuckDB writeback:** `src/ml/predict_role_family.py`
+- **Label sample generator:** `src/ml/make_labels_sample.py`
+- **Outputs / artifacts:**
+  - `reports/role_family_eval.md`
+  - `reports/role_family_confusion.png`
+  - `reports/role_family_errors.csv`
+  - `models/role_family_clf.joblib`
+
+### Data + schema used
+DuckDB: `warehouse/analytics.duckdb`
+
+Postings table: `stg_job_postings` (cleaned/staged)
+- `job_id` (id)
+- `title`
+- `location`
+- `description_full`
+
+### How to run (end-to-end)
+
+### How to run (end-to-end)
+
+This project supports an end-to-end workflow: generate a labeling sample, prefill + standardize labels, train/evaluate a baseline NLP model, run inference on all postings, and write predictions back into DuckDB.
+
+```bash
+# 0) Install dependencies (one-time)
+pip install -r requirements.txt
+# or: pip install duckdb pandas scikit-learn joblib matplotlib
+
+# 1) Generate a labeling sample (creates labels/labels_sample.csv)
+python -m src.ml.make_labels_sample --db warehouse/analytics.duckdb --table stg_job_postings --n 250
+
+# 2) Prefill labels from the existing role_family column (creates labels/labels_sample_prefilled.csv)
+python -m src.ml.prefill_labels_from_role_family --db warehouse/analytics.duckdb --table stg_job_postings --labels-csv labels/labels_sample.csv
+
+# 3) Standardize labels into a small canonical set (creates labels/labels_sample_final.csv)
+# Example mapping used here: bi -> bi_analyst, data_scientist -> ml_engineer, blanks -> other
+python -c "import pandas as pd; df=pd.read_csv('labels/labels_sample_prefilled.csv'); df['role_family_label']=df['role_family_label'].fillna('').astype(str).str.strip().str.lower(); df['role_family_label']=df['role_family_label'].replace({'bi':'bi_analyst','data_scientist':'ml_engineer'}); df.loc[df['role_family_label']=='','role_family_label']='other'; df.to_csv('labels/labels_sample_final.csv', index=False); print(df['role_family_label'].value_counts())"
+
+# 4) Train + evaluate (writes model + evaluation artifacts)
+python -m src.ml.train_role_family --db warehouse/analytics.duckdb --table stg_job_postings --labels-csv labels/labels_sample_final.csv
+
+# 5) Predict all postings + write to DuckDB table pred_role_family
+python -m src.ml.predict_role_family --db warehouse/analytics.duckdb --table stg_job_postings
+
+# 6) Sanity-check prediction distribution
+python -c "import duckdb; con=duckdb.connect('warehouse/analytics.duckdb'); print(con.execute('SELECT pred_role_family, COUNT(*) cnt FROM pred_role_family GROUP BY 1 ORDER BY cnt DESC').fetchall())"
+
+
