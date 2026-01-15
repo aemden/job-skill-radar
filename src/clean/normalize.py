@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import hashlib
 import pathlib
 import re
@@ -41,6 +43,39 @@ def _role_family(title: str) -> str:
         return "bi"
     return "other"
 
+def parse_indeed_date(s: str, reference: date) -> date | None:
+    """
+    Convert Indeed-style strings like:
+      - '30+ days ago'
+      - '3 days ago'
+      - '1 day ago'
+      - 'Today'
+      - 'Just posted'
+    into a real date using a reference date (dataset snapshot date).
+    """
+    if s is None:
+        return None
+    t = str(s).strip().lower()
+    if not t:
+        return None
+
+    # common exact-ish strings
+    if "today" in t or "just posted" in t:
+        return reference
+
+    # patterns like "30+ days ago", "3 days ago", "1 day ago"
+    m = re.search(r"(\d+)\s*\+?\s*day", t)
+    if m:
+        days = int(m.group(1))
+        return reference - timedelta(days=days)
+
+    # fallback: try normal parsing
+    dt = pd.to_datetime(s, errors="coerce")
+    if pd.isna(dt):
+        return None
+    return dt.date()
+
+
 def main() -> None:
     con = duckdb.connect(str(DB_PATH))
 
@@ -58,10 +93,10 @@ def main() -> None:
     # Create job_id
     df["job_id"] = df.apply(_make_job_id, axis=1)
 
-    # Parse date (best-effort)
-    # Keep original string too (posted_date_raw)
+    # The dataset is a snapshot from Nov 20, 2022 (per Kaggle description)
+    reference_date = date(2022, 11, 20)
     df["posted_date_raw"] = df["Date"]
-    df["posted_date"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
+    df["posted_date"] = df["Date"].apply(lambda x: parse_indeed_date(x, reference_date))
 
     # Role family
     df["role_family"] = df["Title"].apply(_role_family)
